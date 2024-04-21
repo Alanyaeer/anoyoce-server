@@ -53,6 +53,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/user/login").anonymous()
+                .antMatchers("/user/register").permitAll()
                 .antMatchers("/testCors").hasAuthority("system:dept:list")
                 .anyRequest().authenticated();
 
