@@ -1,0 +1,7 @@
+db:
+  username: root
+  password:
+  url: localhost
+redis:
+  password: root
+  host: 192.168.139.130

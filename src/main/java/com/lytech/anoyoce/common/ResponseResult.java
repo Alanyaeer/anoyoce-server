@@ -2,7 +2,7 @@ package com.lytech.anoyoce.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.lytech.anoyoce.domain.enums.StatusCode;
-import jdk.jshell.Snippet;
+
 import lombok.Builder;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

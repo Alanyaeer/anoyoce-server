@@ -1,3 +1,31 @@
 spring:
   application:
     name: anoyoce
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${db.url}:3306/sg_security?characterEncoding=utf-8&useSSL=false
+    username: ${db.username}
+    password:
+  redis:
+    password: ${redis.password}
+    database: 0
+    host: ${redis.host}
+    lettuce:
+      shutdown-timeout: 350000
+      pool:
+        enabled: true
+        min-idle: 1
+  profiles:
+    active: dev
+server:
+  port: 8088
+mybatis-plus:
+  configuration:
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      update-strategy: not_null
+      id-type: ASSIGN_ID
+  mapper-locations: classpath*:/mapper/**/*.xml
