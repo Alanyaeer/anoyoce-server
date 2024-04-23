@@ -42,15 +42,17 @@ public class LivePersonUtils {
     public static void outLivePerson(String id){
         sessionMap.remove(id);
     }
-
+    public static Integer  getPersonInLiveNum(){
+        return sessionMap.size();
+    }
     /**
      * 查询所有符合房间号并且在线上的用户
-     * @param id
+     * @param id 这个字段没什么用
      * @return
      */
-    public Collection<Session> queryConditionPerson(String id){
+    public List<Session> queryConditionPerson(String roomId){
         //先从redis 中获取到所有的用户列表
-        List<String> userList = redisTemplate.opsForList().range(ROOM_ID, 0, -1);
+        List<String> userList = redisTemplate.opsForList().range(ROOM_ID +":" + roomId, 0, -1);
         ArrayList<Session> sessionsValue = new ArrayList<>();
         for(String user: userList){
             // 如果 在线用户中存在 群里用户，那么就存入到数组里面。
@@ -59,5 +61,15 @@ public class LivePersonUtils {
             }
         }
         return sessionsValue;
+    }
+
+    /**
+     * 根据用户的id来获取到这个用户加入到的群组
+     * @param userId
+     * @return
+     */
+    public List<Long> queryGroupPersonIn(String userId){
+        // 先根据 redis 获取到这个 用户 加入到的群组。
+        return null;
     }
 }
