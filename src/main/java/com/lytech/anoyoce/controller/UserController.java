@@ -17,7 +17,7 @@ public class UserController {
     public ResponseResult login(@RequestBody User user) {
         return userService.login(user);
     }
-    @RequestMapping("/logout")
+    @PostMapping("/logout")
     public ResponseResult logout(){
         return userService.logout();
     }
