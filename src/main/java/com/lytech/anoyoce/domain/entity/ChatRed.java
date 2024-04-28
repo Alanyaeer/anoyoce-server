@@ -1,10 +1,14 @@
 package com.lytech.anoyoce.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -14,14 +18,18 @@ import java.time.LocalDateTime;
 /**
  * 聊天记录的表格
  */
-public class ChatRed {
+public class ChatRed implements Serializable {
     /**
      * 创建时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
     /**
      * 更新时间
      */
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
+    @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
     @TableId
     /**
@@ -39,7 +47,7 @@ public class ChatRed {
     /**
      * 是否匿名发送
      */
-    private Boolean anonymous;
+    private Integer anonymous;
     /**
      * 发送的消息（注意去限制长度）
      */
