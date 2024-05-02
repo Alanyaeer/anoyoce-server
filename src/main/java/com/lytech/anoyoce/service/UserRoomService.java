@@ -6,5 +6,6 @@ import com.lytech.anoyoce.domain.entity.UserRoom;
 public interface UserRoomService extends IService<UserRoom> {
     Integer joinUser(String roomId);
 
-    boolean removeUser(String memberId);
+    boolean removeUser(String memberId, String roomId);
+
 }

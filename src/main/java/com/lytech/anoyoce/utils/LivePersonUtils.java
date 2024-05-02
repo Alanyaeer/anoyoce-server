@@ -47,7 +47,7 @@ public class LivePersonUtils {
     }
     /**
      * 查询所有符合房间号并且在线上的用户
-     * @param id 这个字段没什么用
+     * @param roomId 这个字段没什么用
      * @return
      */
     public List<Session> queryConditionPerson(String roomId){

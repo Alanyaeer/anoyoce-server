@@ -5,6 +5,7 @@ import com.lytech.anoyoce.domain.entity.User;
 import com.lytech.anoyoce.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,4 +30,13 @@ public class UserController {
         return ResponseResult.success(register);
     }
 
+    /**
+     * 到时候在来写
+     * @return
+     */
+    @GetMapping("/query")
+    @PreAuthorize("hasAuthority('vip')")
+    public ResponseResult queryUser(){
+        return null;
+    }
 }

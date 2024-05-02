@@ -1,7 +1,9 @@
 package com.lytech.anoyoce.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +16,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Room implements Serializable {
+    @TableId
+    private Long id;
     /**
      * 创建时间
      */
@@ -29,7 +33,7 @@ public class Room implements Serializable {
     /**
      * 房间号
      */
-    private Long id;
+
     /**
      * 创建房间的人的id
      */
@@ -38,4 +42,5 @@ public class Room implements Serializable {
      * 父房间id
      */
     private Long rootId;
+    private String roomName;
 }

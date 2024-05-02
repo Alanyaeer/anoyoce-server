@@ -111,6 +111,11 @@ public class RedisCache
         Long count = redisTemplate.opsForList().rightPushAll(key, dataList);
         return count == null ? 0 : count;
     }
+    public <T> Long createCacheList(final String key)
+    {
+        Long count = redisTemplate.opsForList().rightPush(key, "");
+        return count == null ? 0 : count;
+    }
 
     /**
      * 获得缓存的list对象
@@ -121,6 +126,18 @@ public class RedisCache
     public <T> List<T> getCacheList(final String key)
     {
         return redisTemplate.opsForList().range(key, 0, -1);
+    }
+
+    /**
+     * 传入 一个 id的集合 list
+     * @param key
+     * @param userIdList
+     */
+    public void delItemCacheList (final String key, final String userIdList){
+        String[] userList = userIdList.split(",");
+        for (int i = 0; i < userList.length; i++) {
+            redisTemplate.opsForList().remove(key, 1, userList[i]);
+        }
     }
 
     /**
