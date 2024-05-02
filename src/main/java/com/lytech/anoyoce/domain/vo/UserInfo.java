@@ -50,20 +50,8 @@ public class UserInfo implements Serializable {
      */
     public String userType;
     /**
-     * 创建人的用户id
-     */
-    public Long createBy;
-    /**
      * 创建时间
      */
     public Date createTime;
-    /**
-     * 更新人
-     */
-    public Long updateBy;
-    /**
-     * 更新时间
-     */
-    public Date updateTime;
     public String studentId;
 }
