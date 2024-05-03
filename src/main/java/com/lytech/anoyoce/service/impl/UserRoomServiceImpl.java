@@ -11,6 +11,8 @@ import com.lytech.anoyoce.utils.GetLoginUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static com.lytech.anoyoce.domain.enums.UserRoomType.ROOM_LEADER;
 import static com.lytech.anoyoce.domain.enums.UserRoomType.ROOM_MEMBER;
 
@@ -47,6 +49,17 @@ public class UserRoomServiceImpl extends ServiceImpl<UserRoomMapper, UserRoom> i
         userRoomLambdaQueryWrapper.eq(UserRoom::getUserId, memberId);
         userRoomLambdaQueryWrapper.eq(UserRoom::getId, roomId);
         return remove(userRoomLambdaQueryWrapper);
+
+    }
+
+    @Override
+    public List<UserRoom> queryRoomUserIn() {
+        Long userId = GetLoginUserUtils.getUserId();
+        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserRoom::getUserId, userId);
+        List<UserRoom> userRoomList = this.list(wrapper);
+        return userRoomList;
+
 
     }
 

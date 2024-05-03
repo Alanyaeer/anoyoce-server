@@ -52,7 +52,6 @@ public class ChatController {
             List<ChatRed> chatRedList =  chatRedService.queryByRoomId(roomId);
             redisCache.setCacheList(USER_ROOM_CHAT + ":" + roomId, chatRedList);
 //            redisCache.expire(USER_ROOM_CHAT + ":" + roomId, 60, TimeUnit.MINUTES);
-            //暂定 后续 需要 组件合并 起来
             cacheChatList = chatRedList;
         }
         // 组装

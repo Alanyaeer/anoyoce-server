@@ -8,6 +8,7 @@ import com.lytech.anoyoce.common.ResponseResult;
 import com.lytech.anoyoce.domain.entity.Room;
 import com.lytech.anoyoce.domain.entity.User;
 import com.lytech.anoyoce.domain.entity.UserRoom;
+import com.lytech.anoyoce.domain.vo.RoomVo;
 import com.lytech.anoyoce.domain.vo.UserInfo;
 import com.lytech.anoyoce.mapper.RoomMapper;
 import com.lytech.anoyoce.mapper.UserRoomMapper;
@@ -26,10 +27,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.Array;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.lytech.anoyoce.constants.RedisConstants.ROOM_ID;
-import static com.lytech.anoyoce.constants.RedisConstants.USER_ADD_ROOM;
+import static com.lytech.anoyoce.constants.RedisConstants.*;
 import static com.lytech.anoyoce.domain.enums.UserRoomType.ROOM_MEMBER;
 
 @RestController
@@ -73,6 +74,12 @@ public class roomController {
             ArrayList<Long> userArrayList = new ArrayList<>();
             userArrayList.add(userId);
             redisCache.setCacheList(ROOM_ID + ":" + room.getId(), userArrayList);
+            // 房间信息转变 为 map 然后存入到 redis 里面
+            Map<String, Object> objectMap = BeanUtil.beanToMap(room);
+
+            redisCache.setCacheMap(ROOM_INFO + ":" + room.getId(), objectMap);
+            // 设置过期时间
+            redisCache.expire(ROOM_INFO + ":" + room.getId(), 60, TimeUnit.MINUTES);
         }
         return ResponseResult.success(insert);
     }
@@ -101,7 +108,9 @@ public class roomController {
             // 这个用户加入到的房间号
             HashSet<Long> userListInRoom = new HashSet<>();
             userListInRoom.add(Long.valueOf(roomId));
+
             redisCache.setCacheSet(USER_ADD_ROOM + ":" + userId, userListInRoom);
+
         }
         return new ResponseResult(200, "", joinOk);
     }
@@ -173,13 +182,47 @@ public class roomController {
         }
         return FList;
     }
+
+    /**
+     * 查询某个用户 加入了 哪些房间 已经全部上缓存
+     * @param userId
+     * @return
+     */
     @GetMapping("/query/roomAdd")
     @PreAuthorize("hasAuthority('vip')")
-    public ResponseResult queryRoomUserAdd(@RequestParam("userId") String userId){
+    public ResponseResult queryRoomUserAdd(@RequestParam(value = "userId", required = false) String userId){
         if(StrUtil.isEmpty(userId)) userId = String.valueOf(GetLoginUserUtils.getUserId());
         Set<Object> cacheSet = redisCache.getCacheSet(USER_ADD_ROOM + ":" + userId);
-        List<Long> roomList = BeanUtil.toBean(cacheSet, List.class);
+        List<Object> roomList = cacheSet.stream().collect(Collectors.toList());
+        if(CollectionUtil.isEmpty(roomList)){
+            List<UserRoom> userRoomList =  userRoomService.queryRoomUserIn();
+            Set<Long> roomSet = new HashSet<>();
+            List<RoomVo> roomVos = userRoomList.stream().map(e -> {
+                RoomVo roomVo = new RoomVo();
+                BeanUtil.copyProperties(e, roomVo);
+                Long roomId = e.getId();
+                roomSet.add(roomId);
+                return roomVo;
+            }).collect(Collectors.toList());
+            // 添加进来
+            redisCache.setCacheSet(USER_ADD_ROOM + ":" + userId, roomSet);
+            return ResponseResult.success(roomVos);
+        }
+        List<RoomVo> roomVos = roomList.stream().map(e -> {
+            RoomVo roomVo = new RoomVo();
+            Map<String, Object> cacheMap = redisCache.getCacheMap(ROOM_INFO + ":" + e);
+            if (CollectionUtil.isEmpty(cacheMap)) {
+                Room roomInfo = roomService.getById(((Long)e));
+                // 把 roomInfo  赋值 给 roomVo
+                BeanUtil.copyProperties(roomInfo, roomVo);
+                Map<String, Object> roomInfoMap = BeanUtil.beanToMap(roomInfo);
+                redisCache.setCacheMap(ROOM_INFO + ":" + e, roomInfoMap);
+            }
+            Room roomVoSed = BeanUtil.toBean(cacheMap, Room.class);
+            BeanUtil.copyProperties(roomVoSed, roomVo);
+            return roomVo;
+        }).collect(Collectors.toList());
         //  后续还要做处理
-        return ResponseResult.success(roomList);
+        return ResponseResult.success(roomVos);
     }
 }

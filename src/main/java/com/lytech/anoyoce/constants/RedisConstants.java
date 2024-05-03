@@ -11,5 +11,6 @@ public class RedisConstants {
     public final static String RANDOM_INFO_MSG = "random:info:msg";
     // 用户加入的群聊集合
     public final static String USER_ADD_ROOM = "user:add:room";
+    public final static String ROOM_INFO = "room:info";
 
 }
