@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -17,10 +18,6 @@ public class UserInfo implements Serializable {
      */
     @TableId
     public Long id;
-    /**
-     * 用户名
-     */
-    public String userName;
     /**
      * 昵称
      */
@@ -52,6 +49,17 @@ public class UserInfo implements Serializable {
     /**
      * 创建时间
      */
-    public Date createTime;
+    public LocalDateTime createTime;
     public String studentId;
+    public UserInfo hiddenInfo(UserInfo userInfo){
+        userInfo.setId(null);
+        userInfo.setUserType("-1");
+        userInfo.setStudentId("-1");
+        userInfo.setSex("-1");
+        userInfo.setCreateTime(LocalDateTime.MIN);
+        userInfo.setEmail("-1");
+        userInfo.setPhonenumber("-1");
+        userInfo.setStatus("-1");
+        return userInfo;
+    }
 }

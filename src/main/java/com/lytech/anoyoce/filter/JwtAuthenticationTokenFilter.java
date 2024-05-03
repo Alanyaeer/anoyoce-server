@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Objects;
 
+import static com.lytech.anoyoce.constants.RedisConstants.LOGIN_USER_INFO;
+
 @Component
 public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
 
@@ -42,8 +44,8 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
             e.printStackTrace();
             throw new RuntimeException("token非法");
         }
-        //从redis中获取用户信息
-        String redisKey = "login: " + userid;
+        //从redis中获取用户信息 这里不考虑过期的问题
+        String redisKey = LOGIN_USER_INFO +": " + userid;
         LoginUser loginUser = redisCache.getCacheObject(redisKey);
         if(Objects.isNull(loginUser)){
             throw new RuntimeException("用户未登录");

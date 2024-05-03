@@ -1,7 +1,9 @@
 package com.lytech.anoyoce.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.lytech.anoyoce.domain.entity.ChatRed;
+import com.lytech.anoyoce.domain.vo.ChatRedVo;
 import com.lytech.anoyoce.mapper.ChatRedMapper;
 import com.lytech.anoyoce.service.ChatRedService;
 import com.lytech.anoyoce.utils.GetLoginUserUtils;
@@ -13,8 +15,9 @@ import java.util.List;
 public class ChatRedServiceImpl  extends ServiceImpl<ChatRedMapper, ChatRed> implements ChatRedService {
     @Override
     public List<ChatRed> queryByRoomId(String roomId) {
-        Long userId = GetLoginUserUtils.getUserId();
-        return  this.getBaseMapper().queryByRoomId(roomId, userId);
+        LambdaQueryWrapper<ChatRed> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(ChatRed::getRoomId, roomId);
+        return this.list(queryWrapper);
     }
 
     @Override

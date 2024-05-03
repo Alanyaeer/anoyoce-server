@@ -41,6 +41,9 @@ public class RedisCache
         redisTemplate.opsForValue().set(key, value, timeout, timeUnit);
     }
 
+    public <T> void increCacheObject(final String key, final long increValue){
+        redisTemplate.opsForValue().increment(key, increValue);
+    }
     /**
      * 设置有效时间
      *

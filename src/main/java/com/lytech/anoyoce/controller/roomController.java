@@ -161,9 +161,7 @@ public class roomController {
         List<UserInfo> FList = new ArrayList<>();
         while(iterator.hasNext()){
             Long item = iterator.next();
-            User user = userService.getById(item);
-            UserInfo userInfo = new UserInfo();
-            BeanUtils.copyProperties(user, userInfo);
+            UserInfo userInfo =  userService.getUserInfo(item);
             FList.add(userInfo);
         }
         return FList;
