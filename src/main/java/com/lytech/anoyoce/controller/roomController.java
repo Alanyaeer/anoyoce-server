@@ -1,5 +1,6 @@
 package com.lytech.anoyoce.controller;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -24,13 +25,11 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.sql.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.lytech.anoyoce.constants.RedisConstants.ROOM_ID;
+import static com.lytech.anoyoce.constants.RedisConstants.USER_ADD_ROOM;
 import static com.lytech.anoyoce.domain.enums.UserRoomType.ROOM_MEMBER;
 
 @RestController
@@ -99,6 +98,10 @@ public class roomController {
             Long userId = GetLoginUserUtils.getUserId();
             userList.add(userId);
             redisCache.setCacheList(ROOM_ID + ":" + roomId, userList);
+            // 这个用户加入到的房间号
+            HashSet<Long> userListInRoom = new HashSet<>();
+            userListInRoom.add(Long.valueOf(roomId));
+            redisCache.setCacheSet(USER_ADD_ROOM + ":" + userId, userListInRoom);
         }
         return new ResponseResult(200, "", joinOk);
     }
@@ -134,6 +137,10 @@ public class roomController {
                 if(deleteOk){
                     // 从 redis 中 删除对应的字段
                     redisCache.delItemCacheList(ROOM_ID + ":" + roomId, memberId);
+                    // 这个 roomSet 是 要被删除的房间号
+                    Set<Long> roomSet = new HashSet<>();
+                    roomSet.add(Long.valueOf(roomId));
+                    redisCache.revCacheSet(USER_ADD_ROOM + ":" + userId, roomSet);
                 }
                 return ResponseResult.success(deleteOk);
             }
@@ -165,5 +172,14 @@ public class roomController {
             FList.add(userInfo);
         }
         return FList;
+    }
+    @GetMapping("/query/roomAdd")
+    @PreAuthorize("hasAuthority('vip')")
+    public ResponseResult queryRoomUserAdd(@RequestParam("userId") String userId){
+        if(StrUtil.isEmpty(userId)) userId = String.valueOf(GetLoginUserUtils.getUserId());
+        Set<Object> cacheSet = redisCache.getCacheSet(USER_ADD_ROOM + ":" + userId);
+        List<Long> roomList = BeanUtil.toBean(cacheSet, List.class);
+        //  后续还要做处理
+        return ResponseResult.success(roomList);
     }
 }

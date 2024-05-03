@@ -9,5 +9,7 @@ public class RedisConstants {
     public final static String LOGIN_USER_INFO = "login";
     public final static String RANDOM_INFO_COUNT = "random:info:count";
     public final static String RANDOM_INFO_MSG = "random:info:msg";
+    // 用户加入的群聊集合
+    public final static String USER_ADD_ROOM = "user:add:room";
 
 }

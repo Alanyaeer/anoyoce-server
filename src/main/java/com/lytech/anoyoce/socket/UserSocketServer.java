@@ -3,45 +3,56 @@ package com.lytech.anoyoce.socket;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.lytech.anoyoce.service.UserService;
 import com.lytech.anoyoce.utils.GetLoginUserUtils;
 import com.lytech.anoyoce.utils.LivePersonUtils;
 import com.lytech.anoyoce.utils.RoomUtils;
+import com.lytech.anoyoce.utils.SpringCtxUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @ServerEndpoint(value = "/user/{userToken}")
 @Component
+@Slf4j
 public class UserSocketServer {
-    private static final Logger log = LoggerFactory.getLogger(WebSocketServer.class);
-    @Autowired
+//    private static final Logger log = LoggerFactory.getLogger(WebSocketServer.class);
+    @Resource
     private LivePersonUtils livePersonUtils;
-    @Autowired
+    @Resource
     private WebSocketServer webSocketServer;
-    @Autowired
+    @Resource
     private RoomUtils roomUtils;
     @OnOpen
     public void onOpen(Session session, @PathParam("userToken") String userToken) {
-        Long userId = GetLoginUserUtils.getUserId();
+        Long userId = GetLoginUserUtils.getUserIdFromToken(userToken);
         JSONObject result = new JSONObject();
         JSONArray array = new JSONArray();
         // 一个人员放入到这个 map 就是 在线的用户集合
         LivePersonUtils.inLivePerson(userId.toString(), session);
+        // websocket注入失败问题
 
+        if(roomUtils == null){
+            roomUtils = SpringCtxUtils.getBean(RoomUtils.class);
+        }
         // 找到这个人加入的所有群 TODO
-        List<Session> roomSessionList = roomUtils.queryConditionRoom();
-        // 然后提醒这个所有这个群里的用户
-        personOnlineAlert(roomSessionList);
+        List<Session> roomSessionList = roomUtils.queryConditionRoom(userToken);
+        // 然后提醒这个所有这个群里的用户 后面在来写吧 ！
+//        personOnlineAlert(roomSessionList);
 
     }
 
@@ -58,7 +69,9 @@ public class UserSocketServer {
         // 一种 是 接受 消息 的 Message
         // 一种 是 接受 登录 消息的
         //设置 一个 工厂 来接受 这个 消息然后
-        this.sendMessage(message, session);
+        log.info("接收到消息");
+
+        this.sendMessageAsync(message, session);
     }
     @OnError
     public void onError(Session session, Throwable error) {
@@ -67,7 +80,7 @@ public class UserSocketServer {
     }
     @OnClose
     public void onClose(Session session, @PathParam("userToken") String userToken) {
-        String userId = GetLoginUserUtils.getUserId().toString();
+        String userId = GetLoginUserUtils.getUserIdFromToken(userToken).toString();
         LivePersonUtils.outLivePerson(userToken);
         log.info("有一连接关闭，移除userid{}的用户session, 当前在线人数为：{}", userId, LivePersonUtils.getPersonInLiveNum());
     }
@@ -75,7 +88,11 @@ public class UserSocketServer {
     private void personOnlineAlert(List<Session> roomSessionList){
         if(roomSessionList == null || roomSessionList.size() == 1) return ;
         else {
-
+            HashMap<String, Boolean> hasAlertPerson = new HashMap<>();
+            // 每个群里面在线的人
+            for(Session session : roomSessionList){
+                // 从
+            }
         }
     }
     private void sendMessage(String message, Session toSession) {
@@ -85,6 +102,20 @@ public class UserSocketServer {
             toSession.getBasicRemote().sendText(message);
         } catch (Exception e) {
             log.error("服务端发送消息给客户端失败", e);
+        }
+    }
+
+    /**
+     * 异步发送提高性能
+     * @param message
+     * @param toSession
+     */
+    private void sendMessageAsync(String message, Session toSession){
+        if(toSession.isOpen()){
+            toSession.getAsyncRemote().sendText(message);
+        }
+        else {
+            log.info("这个session现在是关闭的");
         }
     }
 }

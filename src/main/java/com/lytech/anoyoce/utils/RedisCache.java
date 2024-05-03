@@ -160,6 +160,24 @@ public class RedisCache
         }
         return setOperation;
     }
+    public <T> Integer revCacheSet(final String key, final Set<T> dataSet)
+    {
+        BoundSetOperations<String, T> setOperation = redisTemplate.boundSetOps(key);
+        Iterator<T> it = dataSet.iterator();
+        int cnt = 0;
+        while (it.hasNext())
+        {
+            //判断是否存在然后在删除
+            if(setOperation.isMember(it.next())){
+                setOperation.remove(it.next());
+                cnt ++;
+            }
+        }
+        return cnt;
+    }
+    public <T> void putCacheSet(final String key, final Set<T> dataSet){
+
+    }
 
     /**
      * 获得缓存的set
