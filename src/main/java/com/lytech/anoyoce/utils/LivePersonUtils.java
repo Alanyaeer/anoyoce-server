@@ -34,6 +34,11 @@ public class LivePersonUtils {
     public static void inLivePerson(String id, Session session){
         if(sessionMap.containsKey(id) == false) sessionMap.put(id, session);
     }
+    public static Integer judgePersonOnline(Long id){
+        boolean b = sessionMap.containsKey(id.toString());
+        if(b == true) return 1;
+        else return 0;
+    }
 
     /**
      * 断开连接就拜拜

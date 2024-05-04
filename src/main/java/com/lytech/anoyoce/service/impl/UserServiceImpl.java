@@ -16,6 +16,7 @@ import com.lytech.anoyoce.mapper.UserMapper;
 import com.lytech.anoyoce.service.UserService;
 import com.lytech.anoyoce.utils.GenerateRandomUtils;
 import com.lytech.anoyoce.utils.JwtUtil;
+import com.lytech.anoyoce.utils.LivePersonUtils;
 import com.lytech.anoyoce.utils.RedisCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -114,6 +115,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             User user = BeanUtil.toBean(cacheMap, User.class);
             BeanUtils.copyProperties(user, userInfo);
         }
+        // 在线处理
+        userInfo.setOnline(LivePersonUtils.judgePersonOnline(userInfo.getId()));
         return userInfo;
     }
 

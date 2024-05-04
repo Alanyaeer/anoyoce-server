@@ -1,6 +1,7 @@
 package com.lytech.anoyoce.filter;
 
 
+import cn.hutool.core.util.StrUtil;
 import com.lytech.anoyoce.domain.entity.LoginUser;
 import com.lytech.anoyoce.utils.JwtUtil;
 import com.lytech.anoyoce.utils.RedisCache;
@@ -30,6 +31,12 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         //获取token
         String token = request.getHeader("token");
+        if(StrUtil.isEmpty(token)){
+            // 解决websocket token 的 问题
+            token = request.getHeader("Sec-Websocket-Protocol");
+            // 给响应加上 socket 头
+            response.setHeader("Sec-Websocket-Protocol", token);
+        }
         if (!StringUtils.hasText(token)) {
             //放行, 没有token就让后面去放行
             filterChain.doFilter(request, response);
@@ -57,6 +64,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginUser,null,loginUser.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
         //放行
         filterChain.doFilter(request, response);
     }

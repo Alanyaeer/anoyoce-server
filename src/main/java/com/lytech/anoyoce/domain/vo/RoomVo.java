@@ -37,4 +37,8 @@ public class RoomVo implements Serializable {
     private Long rootId;
     private String roomName;
     private String roomAvatar;
+    /**
+     * 创建人的信息
+     */
+    private UserInfo userInfo;
 }

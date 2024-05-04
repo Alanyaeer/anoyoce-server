@@ -50,8 +50,11 @@ public class ChatController {
         List<ChatRed> cacheChatList = redisCache.getCacheList(USER_ROOM_CHAT + ":" + roomId);
         if(CollectionUtil.isEmpty(cacheChatList)){
             List<ChatRed> chatRedList =  chatRedService.queryByRoomId(roomId);
+            // 消息的个数就是 0 这里直接就避免了 并且这里还避免了多次 放入消息到redis 的 问题
+            if(CollectionUtil.isEmpty(chatRedList)){
+                return ResponseResult.success(chatRedList);
+            }
             redisCache.setCacheList(USER_ROOM_CHAT + ":" + roomId, chatRedList);
-//            redisCache.expire(USER_ROOM_CHAT + ":" + roomId, 60, TimeUnit.MINUTES);
             cacheChatList = chatRedList;
         }
         // 组装

@@ -5,6 +5,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lytech.anoyoce.common.ResponseResult;
+import com.lytech.anoyoce.constants.AvatarConstants;
 import com.lytech.anoyoce.domain.entity.Room;
 import com.lytech.anoyoce.domain.entity.User;
 import com.lytech.anoyoce.domain.entity.UserRoom;
@@ -80,8 +81,10 @@ public class roomController {
             redisCache.setCacheMap(ROOM_INFO + ":" + room.getId(), objectMap);
             // 设置过期时间
             redisCache.expire(ROOM_INFO + ":" + room.getId(), 60, TimeUnit.MINUTES);
+            return new ResponseResult(200, "插入成功", room);
+
         }
-        return ResponseResult.success(insert);
+        return ResponseResult.error("插入房间失败");
     }
 
     /**
@@ -202,6 +205,7 @@ public class roomController {
                 BeanUtil.copyProperties(e, roomVo);
                 Long roomId = e.getId();
                 roomSet.add(roomId);
+                roomVo.setRoomAvatar(AvatarConstants.avatar1);
                 return roomVo;
             }).collect(Collectors.toList());
             // 添加进来
@@ -220,9 +224,22 @@ public class roomController {
             }
             Room roomVoSed = BeanUtil.toBean(cacheMap, Room.class);
             BeanUtil.copyProperties(roomVoSed, roomVo);
+            roomVo.setRoomAvatar(AvatarConstants.avatar1);
             return roomVo;
         }).collect(Collectors.toList());
         //  后续还要做处理
         return ResponseResult.success(roomVos);
+    }
+
+    /**
+     * 通过查询 房间号的id 来 获取到 房间的信息
+     * @param roomId
+     * @return
+     */
+    @GetMapping("/query/roomId")
+    @PreAuthorize("hasAuthority('vip')")
+    public ResponseResult queryRoomInfoById(@RequestParam(value = "roomId", required = false) String roomId){
+        RoomVo roomVo =  roomService.getRoomInfoById(roomId);
+        return ResponseResult.success(roomVo);
     }
 }

@@ -51,6 +51,11 @@ public class UserInfo implements Serializable {
      */
     public LocalDateTime createTime;
     public String studentId;
+    /**
+     * 1 代表在线
+     * 0 代表下线
+     */
+    public Integer online;
     public UserInfo hiddenInfo(UserInfo userInfo){
         userInfo.setId(null);
         userInfo.setUserType("-1");

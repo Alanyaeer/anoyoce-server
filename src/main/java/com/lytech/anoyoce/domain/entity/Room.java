@@ -43,4 +43,5 @@ public class Room implements Serializable {
      */
     private Long rootId;
     private String roomName;
+    private String roomAvatar;
 }

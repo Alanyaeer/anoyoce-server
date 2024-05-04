@@ -38,13 +38,14 @@ public class UserSocketServer {
     @Resource
     private RoomUtils roomUtils;
     @OnOpen
-    public void onOpen(Session session, @PathParam("userToken") String userToken) {
+        public void onOpen(Session session, @PathParam("userToken") String userToken) {
         Long userId = GetLoginUserUtils.getUserIdFromToken(userToken);
         JSONObject result = new JSONObject();
         JSONArray array = new JSONArray();
         // 一个人员放入到这个 map 就是 在线的用户集合
         LivePersonUtils.inLivePerson(userId.toString(), session);
         // websocket注入失败问题
+        log.info("有一连接打开，创建userid{}的用户session, 当前在线人数为：{}", userId, LivePersonUtils.getPersonInLiveNum());
 
         if(roomUtils == null){
             roomUtils = SpringCtxUtils.getBean(RoomUtils.class);
@@ -81,7 +82,7 @@ public class UserSocketServer {
     @OnClose
     public void onClose(Session session, @PathParam("userToken") String userToken) {
         String userId = GetLoginUserUtils.getUserIdFromToken(userToken).toString();
-        LivePersonUtils.outLivePerson(userToken);
+        LivePersonUtils.outLivePerson(userId);
         log.info("有一连接关闭，移除userid{}的用户session, 当前在线人数为：{}", userId, LivePersonUtils.getPersonInLiveNum());
     }
 
