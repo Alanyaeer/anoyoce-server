@@ -1,8 +1,10 @@
 package com.lytech.anoyoce.socket;
 
+import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.lytech.anoyoce.utils.GetLoginUserUtils;
 import com.lytech.anoyoce.utils.LivePersonUtils;
 import com.lytech.anoyoce.utils.RoomUtils;
 import com.lytech.anoyoce.utils.SpringCtxUtils;
@@ -11,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -38,32 +41,33 @@ public class RoomSocketServer {
         // 我们维护一个Map 判断是否给某个用户是否发送过登录的 消息
         JSONObject jsonObject = JSONUtil.parseObj(message);
         String type = jsonObject.getStr("type");
-        // 这里似乎 可以用到工厂模式
+        String token = jsonObject.getStr("token");
+
+//         jsonObject.get("message");
         // 发送消息
-        if(type.equals("1")){
+        // type == login
+
+        if(type.equals("chat")){
             // websocket 注入失败处理
             if(personUtils == null){
                 personUtils =  SpringCtxUtils.getBean(LivePersonUtils.class);
             }
             List<Session> sessionPersonList = personUtils.queryConditionPerson(roomId); // 查询这个群里所有的人
 
-            for(Session sessionItem: sessionPersonList)
-                sendMessage(message, sessionItem);
+            for(Session sessionItem: sessionPersonList){
+                JSONObject pacMsg = JSONUtil.parseObj(message);
+                int isSelf = 0;
+                if(sessionItem.getPathParameters().get("userToken").equals(token)) isSelf = 1;
+                ((JSONObject)pacMsg.get("message")).set("self", isSelf);
+
+                sendMessage(pacMsg.toString(), sessionItem);
+            }
         }
         // 通知所在群的人 ， 自己当前上线了这里
-        else if(type.equals("2")){
-//            //登录的发送请求
-//            List<Session> sessionGroupList = roomUtils.queryConditionRoom(); // 这个发送的用户他加入的所有群聊
-//            //定义一个HashMap，如果 某个用户 直接已经在Map里面了，就不用在发送这登录消息了
-//            Map<String, Integer> hashMap = new HashMap<>();
-//            for(Session sessionItem: sessionGroupList){
-//                // getId 返回的 是 连接的人员 序号 （默认从1开始升序）， 所以这里可能 有一丝丝问题， 但是不要紧
-//                if(!hashMap.containsKey(sessionItem.getId())) {
-//                    this.sendMessage(message, sessionItem);
-//                    hashMap.put(session.getId(), 1);
-//                }
-//            }
+        else if(type.equals("login")){
+
         }
+
     }
     private void sendMessage(String message, Session toSession) {
         try {
@@ -80,6 +84,8 @@ public class RoomSocketServer {
      */
     private void sendMessageAsync(String message, Session toSession){
         if(toSession.isOpen()){
+            // 处理self 和 time的问题
+
             toSession.getAsyncRemote().sendText(message);
         }
         else {

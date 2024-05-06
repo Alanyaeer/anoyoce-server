@@ -45,7 +45,7 @@ public class ChatRed implements Serializable {
      */
     private Long pid;
     /**
-     * 是否匿名发送
+     * 是否匿名发送 1 代表不匿名， 0 代表匿名 默认是匿名
      */
     private Integer anonymous;
     /**

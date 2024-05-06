@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.lytech.anoyoce.constants.RedisConstants.USER_ADD_ROOM;
-import static com.lytech.anoyoce.constants.RedisConstants.USER_IN_ROOM;
 
 @Component
 @Slf4j

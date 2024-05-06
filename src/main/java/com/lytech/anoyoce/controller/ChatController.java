@@ -54,7 +54,8 @@ public class ChatController {
             if(CollectionUtil.isEmpty(chatRedList)){
                 return ResponseResult.success(chatRedList);
             }
-            redisCache.setCacheList(USER_ROOM_CHAT + ":" + roomId, chatRedList);
+            // TODO 暂时先不用再这里 修复缓存， 避免 多线程问题
+//            redisCache.setCacheList(USER_ROOM_CHAT + ":" + roomId, chatRedList);
             cacheChatList = chatRedList;
         }
         // 组装

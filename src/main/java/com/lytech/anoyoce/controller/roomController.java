@@ -3,6 +3,7 @@ package com.lytech.anoyoce.controller;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpRequest;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lytech.anoyoce.common.ResponseResult;
 import com.lytech.anoyoce.constants.AvatarConstants;
@@ -75,6 +76,10 @@ public class roomController {
             ArrayList<Long> userArrayList = new ArrayList<>();
             userArrayList.add(userId);
             redisCache.setCacheList(ROOM_ID + ":" + room.getId(), userArrayList);
+            // 用户加入了哪些房间号
+            HashSet<Long> set = new HashSet<>();
+            set.add(room.getId());
+            redisCache.setCacheSet(USER_ADD_ROOM + ":" + userId, set);
             // 房间信息转变 为 map 然后存入到 redis 里面
             Map<String, Object> objectMap = BeanUtil.beanToMap(room);
 
@@ -158,6 +163,12 @@ public class roomController {
             }
         }
     }
+
+    /**
+     * 查询某个房间加入的用户
+     * @param roomId
+     * @return
+     */
     @GetMapping("/query/user")
     @PreAuthorize("hasAuthority('vip')")
     public ResponseResult queryRoomUser(@RequestParam(value = "roomId") String roomId){
@@ -169,7 +180,8 @@ public class roomController {
         if(!StrUtil.isEmpty(roomId))
             wrapper.eq(UserRoom::getId, roomId);
         List<UserRoom> userRoomList = userRoomService.list(wrapper);
-        List<Long> userList = userRoomList.stream().map(e -> e.getId()).collect(Collectors.toList());
+        // 获取到所有这个房间的用户id
+        List<Long> userList = userRoomList.stream().map(e -> e.getUserId()).collect(Collectors.toList());
         //放入内存中
         redisCache.setCacheList(ROOM_ID + ":" + roomId, userList);
 
