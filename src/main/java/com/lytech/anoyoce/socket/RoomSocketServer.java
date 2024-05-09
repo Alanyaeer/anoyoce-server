@@ -4,16 +4,15 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.lytech.anoyoce.utils.GetLoginUserUtils;
-import com.lytech.anoyoce.utils.LivePersonUtils;
-import com.lytech.anoyoce.utils.RoomUtils;
-import com.lytech.anoyoce.utils.SpringCtxUtils;
+import com.lytech.anoyoce.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -32,10 +31,23 @@ public class RoomSocketServer {
     @Autowired
     private RoomUtils roomUtils;
     @OnOpen
-    public void onOpen(Session session, @PathParam("roomId") String room){
+    public void onOpen(Session session, @PathParam("roomId") String roomId){
+        if(roomUtils == null) {
+            roomUtils = SpringCtxUtils.getBean(RoomUtils.class);
+        }
+        String userId = UserPrincipalUtils.getUserId((UsernamePasswordAuthenticationToken) session.getUserPrincipal());
+        roomUtils.viewInRoom(userId, roomId, session);
+        roomUtils.LogViewInRoom(userId, roomId, "login");
         log.info("房间已经打开");
     }
-
+    @OnClose
+    public void onClose(Session session,  @PathParam("roomId") String roomId) {
+        String userId = UserPrincipalUtils.getUserId((UsernamePasswordAuthenticationToken) session.getUserPrincipal());
+        if(roomUtils == null) roomUtils = SpringCtxUtils.getBean(RoomUtils.class);
+        roomUtils.viewOutRoom(userId, roomId, session);
+        roomUtils.LogViewInRoom(userId, roomId, "logout");
+        log.info("有一连接关闭");
+    }
     @OnMessage(maxMessageSize = 104048676)
     public void onMessage(String message, Session session, @PathParam("roomId") String roomId){
         // 我们维护一个Map 判断是否给某个用户是否发送过登录的 消息

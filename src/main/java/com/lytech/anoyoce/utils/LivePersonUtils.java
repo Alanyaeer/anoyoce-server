@@ -77,4 +77,10 @@ public class LivePersonUtils {
         // 先根据 redis 获取到这个 用户 加入到的群组。
         return null;
     }
+    public Session getUserSession(String userId){
+        if(sessionMap.containsKey(userId)){
+            return sessionMap.get(userId);
+        }
+        else return null;
+    }
 }

@@ -1,6 +1,8 @@
 package com.lytech.anoyoce.utils;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.lytech.anoyoce.domain.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,9 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.websocket.Session;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.lytech.anoyoce.constants.RedisConstants.USER_ADD_ROOM;
@@ -23,8 +23,11 @@ import static com.lytech.anoyoce.constants.RedisConstants.USER_ADD_ROOM;
 public class RoomUtils {
     // 房间号的 Session
     private static final Map<String, Session> roomMap =  new ConcurrentHashMap<>();
+    private static final Map<String, Map<String, Session>> viewRoom = new ConcurrentHashMap<>();
     @Resource
     private RedisCache redisCache;
+    @Resource
+    private LivePersonUtils livePersonUtils;
 
     // 根据用户的id 来 获取到这个用户加入到的房间号的所有Sessions
 
@@ -40,5 +43,36 @@ public class RoomUtils {
         }
         return sessionList;
     }
+    public void viewInRoom(String userId, String roomId, Session session){
+        if(viewRoom.containsKey(roomId)){
+            Map<String, Session> userRoomSessionMap =  viewRoom.get(roomId);
+            userRoomSessionMap.put(userId, session);
+        }
+        else {
+            ConcurrentHashMap<String, Session> userSessionMap = new ConcurrentHashMap<>();
+            userSessionMap.put(userId, session);
+            viewRoom.put(roomId, userSessionMap);
+        }
+    }
+    public void viewOutRoom(String userId, String roomId, Session session){
+        if(viewRoom.containsKey(roomId)){
+            Map<String, Session> userRoomSessionMap =  viewRoom.get(roomId);
+            if(userRoomSessionMap.containsKey(userId))
+            userRoomSessionMap.remove(userId);
+        }
+    }
 
+    public void LogViewInRoom(String userId, String roomId, String type) {
+        Map<String, Session> map = viewRoom.get(roomId);
+        Set<String> userIdSet = map.keySet();
+        Iterator<String> iterator = userIdSet.iterator();
+        while (iterator.hasNext()){
+            String userSessionId = iterator.next();
+            Session userSession = livePersonUtils.getUserSession(userSessionId);
+            JSONObject info = new JSONObject();
+            info.set("type", type);
+            info.set("userId", userId);
+            userSession.getAsyncRemote().sendText(JSONUtil.toJsonStr(info));
+        }
+    }
 }

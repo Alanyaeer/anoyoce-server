@@ -14,6 +14,7 @@ public class JacksonConfiguration {
         return builder -> {
             // 把 Long 类型序列化为 String
             builder.serializerByType(Long.class, ToStringSerializer.instance);
+
         };
     }
 }
