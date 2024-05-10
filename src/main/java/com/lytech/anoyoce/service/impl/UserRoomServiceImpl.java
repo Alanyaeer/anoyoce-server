@@ -59,8 +59,12 @@ public class UserRoomServiceImpl extends ServiceImpl<UserRoomMapper, UserRoom> i
         wrapper.eq(UserRoom::getUserId, userId);
         List<UserRoom> userRoomList = this.list(wrapper);
         return userRoomList;
-
-
     }
-
+    public List<UserRoom> queryRoomUserInById(String userId){
+        LambdaQueryWrapper<UserRoom> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(UserRoom::getUserId, userId);
+        wrapper.select(UserRoom::getId);
+        List<UserRoom> userRoomList = this.list(wrapper);
+        return userRoomList;
+    }
 }

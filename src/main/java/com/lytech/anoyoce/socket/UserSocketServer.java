@@ -4,16 +4,14 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.lytech.anoyoce.service.UserService;
-import com.lytech.anoyoce.utils.GetLoginUserUtils;
-import com.lytech.anoyoce.utils.LivePersonUtils;
-import com.lytech.anoyoce.utils.RoomUtils;
-import com.lytech.anoyoce.utils.SpringCtxUtils;
+import com.lytech.anoyoce.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -51,9 +49,7 @@ public class UserSocketServer {
             roomUtils = SpringCtxUtils.getBean(RoomUtils.class);
         }
         // 找到这个人加入的所有群 TODO
-        List<Session> roomSessionList = roomUtils.queryConditionRoom(userToken);
-        // 然后提醒这个所有这个群里的用户 后面在来写吧 ！
-//        personOnlineAlert(roomSessionList);
+        roomUtils.LogViewInRoom(userId.toString(), "", "login");
 
     }
 
@@ -83,6 +79,7 @@ public class UserSocketServer {
     public void onClose(Session session, @PathParam("userToken") String userToken) {
         String userId = GetLoginUserUtils.getUserIdFromToken(userToken).toString();
         LivePersonUtils.outLivePerson(userId);
+        roomUtils.LogViewInRoom(userId.toString(), "", "logout");
         log.info("有一连接关闭，移除userid{}的用户session, 当前在线人数为：{}", userId, LivePersonUtils.getPersonInLiveNum());
     }
 

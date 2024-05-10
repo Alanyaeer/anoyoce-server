@@ -11,4 +11,6 @@ public interface UserRoomService extends IService<UserRoom> {
     boolean removeUser(String memberId, String roomId);
 
     List<UserRoom> queryRoomUserIn();
+
+    List<UserRoom> queryRoomUserInById(String userId);
 }

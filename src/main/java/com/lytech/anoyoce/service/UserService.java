@@ -21,4 +21,5 @@ public interface UserService extends IService<User> {
     UserInfo getUserInfo(Long item);
 
     ChatRedVo hiddenUserInfo(ChatRedVo chatRedVo);
+    void hiddenAndPack(UserInfo userInfo);
 }

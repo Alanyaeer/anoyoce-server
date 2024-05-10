@@ -88,7 +88,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public boolean register(String password, String userName) {
         return registerType(userName, password, 2L);
     }
-
     /**
      * 给一个用户的id 来获取到UserInfo
      * @param userId
@@ -126,25 +125,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 需要匿名
         if(anonymous == null || anonymous.intValue() == 0){
             UserInfo userInfo = chatRedVo.getUserInfo();
-            // 主键隐藏
-            userInfo.hiddenInfo(userInfo);
-            // 随机获取 一个头像或者名称
-//            RANDOM_INFO
-            Integer cacheMaxNumber = redisCache.getCacheObject(RANDOM_INFO_COUNT);
-            int randomNumber = 0;
-            if(cacheMaxNumber != null){
-                randomNumber = GenerateRandomUtils.randomNumber(cacheMaxNumber);
-                Map<String, Object> cacheMap = redisCache.getCacheMap(RANDOM_INFO_MSG + ":" + randomNumber);
-                userInfo.setNickName((String) cacheMap.get("nickName"));
-                userInfo.setAvatar((String) cacheMap.get("avatar"));
-            }
-            else {
-                //TODO 这里 还需要 在 对头像进行完善
-                userInfo.setNickName("momo");
-                userInfo.setAvatar("-1");
-            }
+            hiddenAndPack(userInfo);
         }
         return chatRedVo;
+    }
+
+    public void hiddenAndPack(UserInfo userInfo) {
+        // 主键隐藏
+        userInfo.hiddenInfo(userInfo);
+        // 随机获取 一个头像或者名称
+//            RANDOM_INFO
+        Integer cacheMaxNumber = redisCache.getCacheObject(RANDOM_INFO_COUNT);
+        int randomNumber = 0;
+        if(cacheMaxNumber != null){
+            randomNumber = GenerateRandomUtils.randomNumber(cacheMaxNumber);
+            Map<String, Object> cacheMap = redisCache.getCacheMap(RANDOM_INFO_MSG + ":" + randomNumber);
+            userInfo.setNickName((String) cacheMap.get("nickName"));
+            userInfo.setAvatar((String) cacheMap.get("avatar"));
+        }
+        else {
+            //TODO 这里 还需要 在 对头像进行完善
+            userInfo.setNickName("momo");
+            userInfo.setAvatar("-1");
+        }
     }
 
     private boolean registerType(String userName, String password, Long userType) {

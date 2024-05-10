@@ -1,9 +1,12 @@
 package com.lytech.anoyoce.utils;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.lytech.anoyoce.domain.entity.User;
+import com.lytech.anoyoce.domain.entity.UserRoom;
+import com.lytech.anoyoce.service.UserRoomService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +18,7 @@ import javax.annotation.Resource;
 import javax.websocket.Session;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static com.lytech.anoyoce.constants.RedisConstants.USER_ADD_ROOM;
 
@@ -28,6 +32,8 @@ public class RoomUtils {
     private RedisCache redisCache;
     @Resource
     private LivePersonUtils livePersonUtils;
+    @Resource
+    private UserRoomService userRoomService;
 
     // 根据用户的id 来 获取到这个用户加入到的房间号的所有Sessions
 
@@ -43,6 +49,7 @@ public class RoomUtils {
         }
         return sessionList;
     }
+    // 这里的session 没有作用
     public void viewInRoom(String userId, String roomId, Session session){
         if(viewRoom.containsKey(roomId)){
             Map<String, Session> userRoomSessionMap =  viewRoom.get(roomId);
@@ -61,18 +68,40 @@ public class RoomUtils {
             userRoomSessionMap.remove(userId);
         }
     }
-
+    public List<Long> queryUserAddRoom(String userId){
+        Set<Object> cacheSet = redisCache.getCacheSet(USER_ADD_ROOM + ":" + userId);
+        List<Long> roomList = cacheSet.stream().map(e-> (Long) e).collect(Collectors.toList());
+        if(CollectionUtil.isEmpty(roomList)){
+            // 从数据库拿取
+            List<UserRoom> userRoomList =  userRoomService.queryRoomUserInById(userId);
+            Set<Long> set = new HashSet<>();
+            List<Long> list = userRoomList.stream().map(e -> {
+                set.add(e.getId());
+                return e.getId();
+            }).collect(Collectors.toList());
+            redisCache.setCacheSet(USER_ADD_ROOM + ":" + userId, set);
+            return list;
+        }
+        return roomList;
+    }
     public void LogViewInRoom(String userId, String roomId, String type) {
-        Map<String, Session> map = viewRoom.get(roomId);
-        Set<String> userIdSet = map.keySet();
-        Iterator<String> iterator = userIdSet.iterator();
-        while (iterator.hasNext()){
-            String userSessionId = iterator.next();
-            Session userSession = livePersonUtils.getUserSession(userSessionId);
-            JSONObject info = new JSONObject();
-            info.set("type", type);
-            info.set("userId", userId);
-            userSession.getAsyncRemote().sendText(JSONUtil.toJsonStr(info));
+        // 先根据 用户id 来找到所有用户的 redis 缓存
+        List<Long> roomList = this.queryUserAddRoom(userId);
+        // 遍历每一个房间通知每一个人
+        for(int i = 0; i < roomList.size(); ++i){
+            roomId = roomList.get(i).toString();
+            Map<String, Session> map = viewRoom.get(roomId);
+            if(CollectionUtil.isEmpty(map)) continue;
+            Set<String> userIdSet = map.keySet();
+            Iterator<String> iterator = userIdSet.iterator();
+            while (iterator.hasNext()){
+                String userSessionId = iterator.next();
+                Session userSession = livePersonUtils.getUserSession(userSessionId);
+                JSONObject info = new JSONObject();
+                info.set("type", type);
+                info.set("userId", userId);
+                userSession.getAsyncRemote().sendText(JSONUtil.toJsonStr(info));
+            }
         }
     }
 }

@@ -57,12 +57,12 @@ public class UserInfo implements Serializable {
      */
     public Integer online;
     public UserInfo hiddenInfo(UserInfo userInfo){
-        userInfo.setId(null);
+        userInfo.setId(0L);
         userInfo.setUserType("-1");
         userInfo.setStudentId("-1");
         userInfo.setSex("-1");
-        userInfo.setCreateTime(LocalDateTime.MIN);
         userInfo.setEmail("-1");
+        userInfo.setCreateTime(LocalDateTime.now());
         userInfo.setPhonenumber("-1");
         userInfo.setStatus("-1");
         return userInfo;

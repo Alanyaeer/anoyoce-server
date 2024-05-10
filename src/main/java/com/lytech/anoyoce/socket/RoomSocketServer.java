@@ -1,9 +1,12 @@
 package com.lytech.anoyoce.socket;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.lytech.anoyoce.domain.vo.UserInfo;
+import com.lytech.anoyoce.service.UserService;
 import com.lytech.anoyoce.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -30,6 +34,10 @@ public class RoomSocketServer {
     private LivePersonUtils personUtils;
     @Autowired
     private RoomUtils roomUtils;
+    @Resource
+    private RedisCache redisCache;
+    @Resource
+    private UserService userService;
     @OnOpen
     public void onOpen(Session session, @PathParam("roomId") String roomId){
         if(roomUtils == null) {
@@ -37,7 +45,6 @@ public class RoomSocketServer {
         }
         String userId = UserPrincipalUtils.getUserId((UsernamePasswordAuthenticationToken) session.getUserPrincipal());
         roomUtils.viewInRoom(userId, roomId, session);
-        roomUtils.LogViewInRoom(userId, roomId, "login");
         log.info("房间已经打开");
     }
     @OnClose
@@ -45,7 +52,6 @@ public class RoomSocketServer {
         String userId = UserPrincipalUtils.getUserId((UsernamePasswordAuthenticationToken) session.getUserPrincipal());
         if(roomUtils == null) roomUtils = SpringCtxUtils.getBean(RoomUtils.class);
         roomUtils.viewOutRoom(userId, roomId, session);
-        roomUtils.LogViewInRoom(userId, roomId, "logout");
         log.info("有一连接关闭");
     }
     @OnMessage(maxMessageSize = 104048676)
@@ -71,8 +77,23 @@ public class RoomSocketServer {
                 int isSelf = 0;
                 if(sessionItem.getPathParameters().get("userToken").equals(token)) isSelf = 1;
                 ((JSONObject)pacMsg.get("message")).set("self", isSelf);
-
-                sendMessage(pacMsg.toString(), sessionItem);
+                String userId = UserPrincipalUtils.getUserId((UsernamePasswordAuthenticationToken) session.getUserPrincipal());
+                if(redisCache == null){
+                    redisCache = SpringCtxUtils.getBean(RedisCache.class);
+                }
+                if(userService == null){
+                    userService = SpringCtxUtils.getBean(UserService.class);
+                }
+                Map<String, Object> cacheMap = redisCache.getCacheMap("USER_INFO_FULL" + ":" + userId);
+                UserInfo bean = BeanUtil.toBean(cacheMap, UserInfo.class);
+                if(bean == null){
+                    bean = userService.getUserInfo(Long.valueOf(userId));
+                    Map<String, Object> map = (Map<String, Object>)BeanUtil.toBean(bean, Map.class);
+                    redisCache.setCacheMap("USER_INFO_FULL" + ":" + userId, map);
+                }
+                userService.hiddenAndPack(bean);
+                ((JSONObject)pacMsg.get("message")).set("userInfo", bean);
+                sendMessage(JSONUtil.toJsonStr(pacMsg), sessionItem);
             }
         }
         // 通知所在群的人 ， 自己当前上线了这里
