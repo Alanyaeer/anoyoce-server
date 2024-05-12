@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.lytech.anoyoce.domain.dto.MessageCardDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,7 +37,7 @@ public class ChatRedVo implements Serializable {
     /**
      * 存入非0的数据的消息
      */
-    private Object messageExtension;
+    private String messageExtension;
     /**
      * 用户信息
      */
@@ -45,4 +46,9 @@ public class ChatRedVo implements Serializable {
      * 是否是本人 0代表是别人， 1代表是自己
      */
     private Integer self;
+
+    /**
+     * 特殊消息封装
+     */
+    private MessageCardDto messageCard;
 }

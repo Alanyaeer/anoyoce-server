@@ -5,6 +5,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.lytech.anoyoce.domain.dto.MessageCardDto;
 import com.lytech.anoyoce.domain.vo.UserInfo;
 import com.lytech.anoyoce.service.UserService;
 import com.lytech.anoyoce.utils.*;
@@ -93,6 +94,12 @@ public class RoomSocketServer {
                 }
                 userService.hiddenAndPack(bean);
                 ((JSONObject)pacMsg.get("message")).set("userInfo", bean);
+                if(((Integer)((JSONObject)(pacMsg.get("message"))).get("messageType")).intValue() == 1)
+                {
+                    String msgExt = ((JSONObject) (pacMsg.get("message"))).get("messageExtension").toString();
+                    MessageCardDto messageCardDto = JsonTransforUtils.JsonToObj(MessageCardDto.class, msgExt);
+                    ((JSONObject)pacMsg.get("message")).set("messageCard", messageCardDto);
+                }
                 sendMessage(JSONUtil.toJsonStr(pacMsg), sessionItem);
             }
         }

@@ -2,18 +2,24 @@ package com.lytech.anoyoce.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSON;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.lytech.anoyoce.common.ResponseResult;
+import com.lytech.anoyoce.domain.dto.MessageCardDto;
 import com.lytech.anoyoce.domain.entity.ChatRed;
+import com.lytech.anoyoce.domain.entity.ScoreUser;
 import com.lytech.anoyoce.domain.entity.User;
 import com.lytech.anoyoce.domain.entity.UserRoom;
 import com.lytech.anoyoce.domain.vo.ChatRedVo;
 import com.lytech.anoyoce.domain.vo.UserInfo;
 import com.lytech.anoyoce.service.ChatRedService;
+import com.lytech.anoyoce.service.ScoreUserService;
 import com.lytech.anoyoce.service.UserRoomService;
 import com.lytech.anoyoce.service.UserService;
 import com.lytech.anoyoce.utils.GetLoginUserUtils;
 import com.lytech.anoyoce.utils.ItemToList;
+import com.lytech.anoyoce.utils.JsonTransforUtils;
 import com.lytech.anoyoce.utils.RedisCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +50,8 @@ public class ChatController {
     private RedisCache redisCache;
     @Resource
     private UserService userService;
+    @Resource
+    private ScoreUserService scoreUserService;
     @PostMapping("/query/chatInfoList")
     @PreAuthorize("hasAuthority('vip')")
     public ResponseResult<List> queryChatInfoList(@RequestParam("roomId") String roomId) {
@@ -77,6 +85,9 @@ public class ChatController {
             if(anonymous == null || anonymous.intValue() == 0){
                 userService.hiddenUserInfo(chatRedVo);
             }
+            String messageExtension = chatRedVo.getMessageExtension();
+            MessageCardDto messageCardDto = JsonTransforUtils.JsonToObj(MessageCardDto.class, messageExtension);
+            chatRedVo.setMessageCard(messageCardDto);
             return chatRedVo;
         }).collect(Collectors.toList());
         return ResponseResult.success(chatRedVoList);
@@ -112,5 +123,46 @@ public class ChatController {
         }
         return ResponseResult.success(saveOk);
     }
+
+    /**
+     * 保存用户的评价的信息
+     * @param scoreUser
+     * @return
+     */
+    @PutMapping("/save/score")
+    @PreAuthorize("hasAuthority('vip')")
+    public ResponseResult saveUserScore(@RequestBody ScoreUser scoreUser){
+        Long userId = GetLoginUserUtils.getUserId();
+        scoreUser.setPid(userId);
+        Long roomId = scoreUser.getRoomId();
+        Long scoreUserId = scoreUser.getUserId();
+        // 只有不存在才可以访问
+        ScoreUser bean = scoreUserService.getOneByCondition(roomId.toString(), userId, scoreUserId.toString());
+
+
+        if(bean == null){
+            scoreUserService.save(scoreUser);
+            return ResponseResult.success(1);
+        }
+        else{
+            return new ResponseResult(200, "保存成绩失败", 0);
+        }
+
+    }
+
+    /**
+     * 查询这个用户给这房间号的评分是多少
+     * @param roomId
+     * @param userId
+     * @return
+     */
+    @GetMapping("/query/score")
+    @PreAuthorize("hasAuthority('vip')")
+    public ResponseResult queryUserScore(@RequestParam("roomId")String roomId, @RequestParam("userId")String userId){
+        Long myId = GetLoginUserUtils.getUserId();
+        ScoreUser one =  scoreUserService.getOneByCondition(roomId, myId, userId);
+        return ResponseResult.success(one);
+    }
+
 
 }

@@ -60,5 +60,5 @@ public class ChatRed implements Serializable {
     /**
      * 存入非0的数据的消息
      */
-    private Object messageExtension;
+    private String messageExtension;
 }
