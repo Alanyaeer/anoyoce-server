@@ -161,6 +161,13 @@ public class ChatController {
     public ResponseResult queryUserScore(@RequestParam("roomId")String roomId, @RequestParam("userId")String userId){
         Long myId = GetLoginUserUtils.getUserId();
         ScoreUser one =  scoreUserService.getOneByCondition(roomId, myId, userId);
+
+        if(one == null){
+            ScoreUser scoreUser = new ScoreUser();
+            scoreUser.setScore(-1);
+            return ResponseResult.success(scoreUser);
+        }
+        else
         return ResponseResult.success(one);
     }
 
