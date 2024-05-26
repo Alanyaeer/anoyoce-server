@@ -24,6 +24,8 @@ public class ScoreUser implements Serializable {
 
     // 用户的评分
     private Integer score;
+    // 第几次评分
+    private Integer times;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

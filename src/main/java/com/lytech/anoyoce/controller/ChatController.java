@@ -136,8 +136,9 @@ public class ChatController {
         scoreUser.setPid(userId);
         Long roomId = scoreUser.getRoomId();
         Long scoreUserId = scoreUser.getUserId();
+        Long times = Long.valueOf(scoreUser.getTimes());
         // 只有不存在才可以访问
-        ScoreUser bean = scoreUserService.getOneByCondition(roomId.toString(), userId, scoreUserId.toString());
+        ScoreUser bean = scoreUserService.getOneByCondition(roomId.toString(), userId, scoreUserId.toString(), times);
 
 
         if(bean == null){
@@ -158,9 +159,9 @@ public class ChatController {
      */
     @GetMapping("/query/score")
     @PreAuthorize("hasAuthority('vip')")
-    public ResponseResult queryUserScore(@RequestParam("roomId")String roomId, @RequestParam("userId")String userId){
+    public ResponseResult queryUserScore(@RequestParam("roomId")String roomId, @RequestParam("userId")String userId, @RequestParam("times") Long times){
         Long myId = GetLoginUserUtils.getUserId();
-        ScoreUser one =  scoreUserService.getOneByCondition(roomId, myId, userId);
+        ScoreUser one =  scoreUserService.getOneByCondition(roomId, myId, userId, times);
 
         if(one == null){
             ScoreUser scoreUser = new ScoreUser();

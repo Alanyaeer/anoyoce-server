@@ -1,6 +1,7 @@
 package com.lytech.anoyoce.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -37,5 +38,8 @@ public class MessageCardDto implements Serializable {
      * 选择的用户ID
      */
     private String choseFriend;
-
+    /**
+     * 查询的次数
+     */
+    private Long times;
 }

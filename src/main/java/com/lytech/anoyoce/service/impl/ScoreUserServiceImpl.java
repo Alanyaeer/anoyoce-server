@@ -11,11 +11,12 @@ import org.springframework.stereotype.Service;
 public class ScoreUserServiceImpl extends ServiceImpl<ScoreUserMapper, ScoreUser> implements ScoreUserService {
 
     @Override
-    public ScoreUser getOneByCondition(String roomId, Long myId, String userId) {
+    public ScoreUser getOneByCondition(String roomId, Long myId, String userId, Long times) {
         LambdaQueryWrapper<ScoreUser> scoreUserLambdaQueryWrapper = new LambdaQueryWrapper<>();
         scoreUserLambdaQueryWrapper.eq(ScoreUser::getRoomId, roomId);
         scoreUserLambdaQueryWrapper.eq(ScoreUser::getPid, myId  );
         scoreUserLambdaQueryWrapper.eq(ScoreUser::getUserId, userId);
+        scoreUserLambdaQueryWrapper.eq(ScoreUser::getTimes, times);
         ScoreUser one = this.getOne(scoreUserLambdaQueryWrapper);
         return one;
     }
